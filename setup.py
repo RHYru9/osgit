@@ -76,30 +76,6 @@ setup(
 
 # Post-installation message
 print("""
-╔═══════════════════════════════════════════════════════════╗
-║                                                           ║
-║   OSGit Installation Complete!                           ║
-║                                                           ║
-║   Usage Examples:                                         ║
-║   ─────────────────                                       ║
-║                                                           ║
-║   Token Management:                                       ║
-║   python -m osgit.main token add -t your_github_token    ║
-║   python -m osgit.main token list                        ║
-║                                                           ║
-║   Subdomain Discovery:                                    ║
-║   python -m osgit.main sub -d example.com -o results.txt ║
-║   python -m osgit.main sub -d example.com -s -v          ║
-║                                                           ║
-║   Path Extraction:                                        ║
-║   python -m osgit.main path -orb 'user,repo,main' -o p.txt -s ║
-║                                                           ║
-║   Or if installed globally:                              ║
-║   osgit token add -t your_token                          ║
-║   osgit sub -d domain.com -o results.txt                 ║
-║   osgit path -orb 'user,repo,main' -o paths.txt -s       ║
-║                                                           ║
-║                     Happy Hunting! 🕵️                     ║
-║                                                           ║
-╚═══════════════════════════════════════════════════════════╝
+OSGit Installation Complete!
+Happy Hunting! 🕵️
 """)
