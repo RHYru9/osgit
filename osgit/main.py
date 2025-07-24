@@ -321,8 +321,8 @@ def main():
 
                         from paths.path_extractor import PathExtractor
                     except ImportError:
-                        print(f"{fg('red')}[-] Path extractor module not found{attr(0)}")
-                        print(f"{fg('yellow')}[!] Please ensure paths/path_extractor.py exists{attr(0)}")
+                        print(f"{fg('red')}[-] Path extractor module not found{attr(0)}") #debug
+                        print(f"{fg('yellow')}[!] Please ensure paths/path_extractor.py exists{attr(0)}") #debug
                         return
 
             extractor = PathExtractor()
