@@ -59,7 +59,6 @@ class SubdomainFinder:
         try:
             response = requests.get(url, headers=headers, timeout=10)
 
-            # Handle rate limiting
             if response.status_code == 403:
                 reset_time = response.headers.get('X-RateLimit-Reset', 0)
                 if reset_time:
@@ -129,7 +128,6 @@ class SubdomainFinder:
         if output.strip():
             print(output.strip())
             if self.output_fp:
-                # Remove color codes for file output
                 clean_output = re.sub(r'\033\[[0-9;]*m', '', output.strip())
                 self.output_fp.write(clean_output + "\n")
 
@@ -151,12 +149,10 @@ class SubdomainFinder:
         """Main execution function"""
         print(f"{fg('cyan')}[*] Starting subdomain discovery for: {args.domain}{attr(0)}")
 
-        # Get tokens
         tokens = self.get_github_tokens(args.token)
         if not tokens:
             return
 
-        # Setup output file
         if args.output:
             try:
                 self.output_fp = open(args.output, "w")
@@ -165,7 +161,6 @@ class SubdomainFinder:
                 print(f"{fg('red')}[-] Cannot create output file: {e}{attr(0)}")
                 return
 
-        # Setup search parameters
         search_query, domain_regexp = self.setup_search_parameters(args.domain, args.extend)
 
         if args.verbose:
@@ -180,7 +175,6 @@ class SubdomainFinder:
             {'sort': '', 'order': 'desc'}
         ]
 
-        # Main search loop
         for sort_order in sort_orders:
             page = 1
             available_tokens = tokens.copy()
@@ -203,16 +197,14 @@ class SubdomainFinder:
                     available_tokens.remove(token)
                     continue
 
-                # Handle API errors
                 if 'documentation_url' in result_json or 'message' in result_json:
                     if args.verbose:
                         print(f"{fg('red')}[-] API Error: {result_json.get('message', 'Unknown error')}{attr(0)}")
                     available_tokens.remove(token)
                     continue
 
-                # Process results
                 if 'items' in result_json and result_json['items']:
-                    with Pool(20) as pool:  # Reduced thread count for better stability
+                    with Pool(20) as pool:
                         pool.map(
                             partial(self.extract_subdomains_from_code, domain_regexp, args.source),
                             result_json['items']
@@ -221,7 +213,6 @@ class SubdomainFinder:
                 else:
                     break
 
-        # Cleanup and summary
         if self.output_fp:
             self.output_fp.close()
 

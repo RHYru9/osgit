@@ -13,7 +13,6 @@ import json
 import argparse
 from pathlib import Path
 
-# Color support
 try:
     from colored import fg, attr
     COLORS_AVAILABLE = True
@@ -22,7 +21,6 @@ except ImportError:
     def fg(color): return ""
     def attr(code): return ""
 
-# ASCII Banner
 BANNER = """
 ╔══════════════════════════════════════════════════════════════╗
 
@@ -152,7 +150,7 @@ def setup_token_commands(subparsers):
         description='Manage GitHub Personal Access Tokens for API authentication',
         formatter_class=ColoredHelpFormatter,
         epilog=f"""{fg('cyan') if COLORS_AVAILABLE else ''}Examples:{attr(0) if COLORS_AVAILABLE else ''}
-  {fg('green') if COLORS_AVAILABLE else ''}./osgit token add -t ghp_your_token_here{attr(0) if COLORS_AVAILABLE else ''}
+ {fg('green') if COLORS_AVAILABLE else ''}./osgit token add -t ghp_your_token_here{attr(0) if COLORS_AVAILABLE else ''}
   {fg('green') if COLORS_AVAILABLE else ''}./osgit token list{attr(0) if COLORS_AVAILABLE else ''}
   {fg('green') if COLORS_AVAILABLE else ''}./osgit token remove -t ghp_token_to_remove{attr(0) if COLORS_AVAILABLE else ''}"""
     )
@@ -169,8 +167,7 @@ def setup_token_commands(subparsers):
     )
     add_parser.add_argument('-t', '--token', required=True,
         help='GitHub Personal Access Token')
-    
-    # Remove token
+
     remove_parser = token_subparsers.add_parser(
         'remove',
         help='Remove a GitHub token',
@@ -178,8 +175,7 @@ def setup_token_commands(subparsers):
     )
     remove_parser.add_argument('-t', '--token', required=True,
         help='GitHub token to remove')
-    
-    # List tokens
+
     token_subparsers.add_parser(
         'list',
         help='List configured tokens',
@@ -187,7 +183,6 @@ def setup_token_commands(subparsers):
     )
 
 def handle_token_commands(args, core):
-    """Handle token management commands"""
     if args.token_action == 'add':
         # Validate token format
         token = args.token.strip()
@@ -212,7 +207,6 @@ def handle_token_commands(args, core):
         print(f"{fg('yellow')}[!] Use: add, remove, or list{attr(0)}")
 
 def main():
-    # Only show banner for main help or no command
     show_main_banner = len(sys.argv) == 1 or (len(sys.argv) == 2 and sys.argv[1] in ['-h', '--help'])
     
     if show_main_banner:
@@ -224,10 +218,9 @@ def main():
         prog='osgit',
         description='GitHub OSINT Tool for subdomain discovery and repository analysis',
         formatter_class=ColoredHelpFormatter,
-        add_help=False  # We'll handle help manually
+        add_help=False
     )
-    
-    # Add custom help
+
     parser.add_argument('-h', '--help', action='store_true', help='Show this help message and exit')
 
     subparsers = parser.add_subparsers(
@@ -235,10 +228,8 @@ def main():
         help='Available commands'
     )
 
-    # Setup subcommands
     setup_token_commands(subparsers)
 
-    # Subdomain finder
     sub_parser = subparsers.add_parser(
         'sub',
         help='Find subdomains using GitHub search',
@@ -261,7 +252,6 @@ def main():
     sub_parser.add_argument('-t', '--token',
                             help='GitHub token to use (overrides config)')
 
-    # Path extractor
     path_parser = subparsers.add_parser(
         'path',
         help='Extract paths from GitHub repository',
@@ -278,10 +268,8 @@ def main():
     path_parser.add_argument('-s', '--segments', action='store_true',
                             help='Extract full file paths instead of individual segments')
 
-    # Parse arguments
     args, unknown = parser.parse_known_args()
 
-    # Handle help manually
     if args.help or (not args.command and not unknown):
         if show_main_banner:
             print(f"\n{fg('cyan')}Usage:{attr(0)}")
@@ -305,11 +293,38 @@ def main():
         if args.command == 'token':
             handle_token_commands(args, core)
         elif args.command == 'sub':
-            from sub.subdomain_finder import SubdomainFinder
+            try:
+                from osgit.sub.subdomain_finder import SubdomainFinder
+            except ImportError:
+                try:
+                    from sub.subdomain_finder import SubdomainFinder
+                except ImportError:
+                    print(f"{fg('red')}[-] Subdomain finder module not found{attr(0)}")
+                    print(f"{fg('yellow')}[!] Please ensure sub/subdomain_finder.py exists{attr(0)}")
+                    return
+
             finder = SubdomainFinder(core)
             finder.run(args)
         elif args.command == 'path':
-            from paths.path_extractor import PathExtractor
+            try:
+                from osgit.paths.path_extractor import PathExtractor
+            except ImportError:
+                try:
+                    from paths.path_extractor import PathExtractor
+                except ImportError:
+                    try:
+                        from pathlib import Path
+
+                        script_dir = Path(__file__).parent
+                        if str(script_dir) not in sys.path:
+                            sys.path.insert(0, str(script_dir))
+
+                        from paths.path_extractor import PathExtractor
+                    except ImportError:
+                        print(f"{fg('red')}[-] Path extractor module not found{attr(0)}")
+                        print(f"{fg('yellow')}[!] Please ensure paths/path_extractor.py exists{attr(0)}")
+                        return
+
             extractor = PathExtractor()
             extractor.run(args)
         else:

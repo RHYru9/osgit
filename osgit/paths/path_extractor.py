@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """
-Path Extractor Module for OSGit
 Author: rhyru9
 Version: v0.0.1
 
@@ -35,7 +34,6 @@ class PathExtractor:
 
         try:
             response = self.session.get(url, timeout=30)
-            # Handle different HTTP status codes
             if response.status_code == 404:
                 print(f"{fg('red')}[-] Repository or branch not found: {owner}/{repo}:{branch}{attr(0)}")
                 return None
@@ -48,7 +46,6 @@ class PathExtractor:
 
             data = response.json()
 
-            # Check if response contains error message
             if 'message' in data:
                 print(f"{fg('red')}[-] GitHub API Error: {data['message']}{attr(0)}")
                 return None
@@ -67,7 +64,6 @@ class PathExtractor:
             return None
 
     def extract_paths_and_segments(self, tree_json, full_paths=True):
-        """Extract paths or segments from repository tree"""
         if not tree_json or 'tree' not in tree_json:
             return []
 
@@ -82,19 +78,16 @@ class PathExtractor:
                 continue
 
             if full_paths:
-                # Extract full paths
                 if path not in seen:
                     seen.add(path)
                     results.append(path)
             else:
-                # Extract individual path segments
                 segments = path.split('/')
                 for segment in segments:
                     if segment and segment not in seen:
                         seen.add(segment)
                         results.append(segment)
 
-        # Sort results for better organization
         results.sort()
         print(f"{fg('green')}[+] Extracted {len(results)} unique {'paths' if full_paths else 'segments'}{attr(0)}")
 
@@ -115,13 +108,11 @@ class PathExtractor:
             return False
 
     def display_statistics(self, results, owner, repo, branch):
-        """Display extraction statistics"""
         print(f"\n{fg('yellow')}=== Extraction Statistics ==={attr(0)}")
         print(f"{fg('cyan')}Repository: {owner}/{repo}:{branch}{attr(0)}")
         print(f"{fg('cyan')}Total items extracted: {len(results)}{attr(0)}")
 
         if results:
-            # Show some sample results
             print(f"{fg('cyan')}Sample results (first 10):{attr(0)}")
             for i, item in enumerate(results[:10], 1):
                 print(f"  {i:2d}. {item}")
@@ -142,7 +133,6 @@ class PathExtractor:
             if not owner or not repo or not branch:
                 raise ValueError("Owner, repo, and branch cannot be empty")
 
-            # Basic validation for GitHub naming conventions
             if not all(c.isalnum() or c in '-_.' for c in owner):
                 raise ValueError("Invalid characters in owner name")
 
@@ -159,23 +149,19 @@ class PathExtractor:
     def run(self, args):
         """Main execution function"""
         print(f"{fg('cyan')}[*] Starting path extraction...{attr(0)}")
-        # Validate and parse ORB string
         owner, repo, branch = self.validate_orb_format(args.orb)
         if not owner:
             return
-        # Fetch repository tree
         tree_data = self.get_github_tree(owner, repo, branch)
         if not tree_data:
             return
 
-        # Extract paths or segments
         results = self.extract_paths_and_segments(tree_data, full_paths=args.segments)
 
         if not results:
             print(f"{fg('yellow')}[!] No paths found in repository{attr(0)}")
             return
 
-        # Save results to file
         if self.save_results_to_file(results, args.output):
             self.display_statistics(results, owner, repo, branch)
         print(f"{fg('green')}[+] Path extraction completed successfully!{attr(0)}")
